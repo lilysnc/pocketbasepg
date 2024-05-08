@@ -127,9 +127,13 @@ func (r *RecordFieldResolver) UpdateQuery(query *dbx.SelectQuery) error {
 		query.Distinct(true)
 
 		for _, join := range r.joins {
+			on := join.on
+			if on == nil {
+				on = dbx.NewExp("TRUE")
+			}
 			query.LeftJoin(
 				(join.tableName + " " + join.tableAlias),
-				join.on,
+				on,
 			)
 		}
 	}
