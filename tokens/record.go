@@ -20,6 +20,8 @@ func NewRecordAuthToken(app core.App, record *models.Record) (string, error) {
 			"id":           record.Id,
 			"type":         TypeAuthRecord,
 			"collectionId": record.Collection().Id,
+			"verified":     record.GetBool("verified"),
+			"verified_at":  record.GetDateTime("verified_at"),
 		},
 		(record.TokenKey() + app.Settings().RecordAuthToken.Secret),
 		app.Settings().RecordAuthToken.Duration,

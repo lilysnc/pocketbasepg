@@ -106,7 +106,7 @@ func (form *CollectionUpsert) Validate() error {
 			&form.Id,
 			validation.When(
 				form.collection.IsNew(),
-				validation.Length(models.DefaultIdLength, models.DefaultIdLength),
+				validation.Length(models.SnowflakeMinLen, models.SnowflakeMaxLen),
 				validation.Match(idRegex),
 				validation.By(validators.UniqueId(form.dao, form.collection.TableName())),
 			).Else(validation.In(form.collection.Id)),
