@@ -612,7 +612,7 @@ func (e *manyVsManyExpr) Build(db *dbx.DB, params dbx.Params) string {
 	}
 
 	return fmt.Sprintf(
-		"NOT EXISTS (SELECT 1 FROM (%s) {{%s}} LEFT JOIN (%s) {{%s}} WHERE %s)",
+		"NOT EXISTS (SELECT 1 FROM (%s) {{%s}} LEFT JOIN (%s) {{%s}} ON TRUE WHERE %s)",
 		e.left.MultiMatchSubQuery.Build(db, params),
 		lAlias,
 		e.right.MultiMatchSubQuery.Build(db, params),
