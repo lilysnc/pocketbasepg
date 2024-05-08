@@ -2,13 +2,16 @@ package pocketbase
 
 import (
 	"io"
+	"log"
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"syscall"
 
 	"github.com/fatih/color"
+	"github.com/joho/godotenv"
 	"github.com/lilysnc/pocketbasepg/cmd"
 	"github.com/lilysnc/pocketbasepg/core"
 	"github.com/lilysnc/pocketbasepg/tools/list"
@@ -71,6 +74,11 @@ type Config struct {
 // If you want to initialize the application before calling [Start()],
 // then you'll have to manually call [Bootstrap()].
 func New() *PocketBase {
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Printf("Error loading .env file: %v", err)
+	}
+
 	_, isUsingGoRun := inspectRuntime()
 
 	return NewWithConfig(Config{
@@ -91,6 +99,9 @@ func NewWithConfig(config Config) *PocketBase {
 		baseDir, _ := inspectRuntime()
 		config.DefaultDataDir = filepath.Join(baseDir, "pb_data")
 	}
+	IS_DEV, _ := strconv.Atoi(os.Getenv("IS_DEV"))
+	config.DefaultDev = config.DefaultDev || IS_DEV != 0
+
 	if config.DefaultDataDsn == "" {
 		config.DefaultDataDsn = os.Getenv("DATA_DSN") // filepath.Join(config.DefaultDataDir, "data.db")
 	}
@@ -286,7 +297,8 @@ func (pb *PocketBase) skipBootstrap() bool {
 
 // inspectRuntime tries to find the base executable directory and how it was run.
 func inspectRuntime() (baseDir string, withGoRun bool) {
-	if strings.HasPrefix(os.Args[0], os.TempDir()) {
+	if strings.HasPrefix(os.Args[0], os.TempDir()) ||
+		strings.Contains(os.Args[0], "__debug_bin") {
 		// probably ran with go run
 		withGoRun = true
 		baseDir, _ = os.Getwd()
