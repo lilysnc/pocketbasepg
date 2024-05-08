@@ -335,11 +335,11 @@ func TestSchemaFieldValidate(t *testing.T) {
 			[]string{"name"},
 		},
 		{
-			"reserved name (_rowid_)",
+			"reserved name (_ctid_)",
 			schema.SchemaField{
 				Type: schema.FieldTypeText,
 				Id:   "1234567890",
-				Name: "_rowid_",
+				Name: "_ctid_",
 			},
 			[]string{"name"},
 		},

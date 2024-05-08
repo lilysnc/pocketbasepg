@@ -49,6 +49,8 @@ type BaseApp struct {
 	// configurable parameters
 	isDev            bool
 	dataDir          string
+	dataDsn          string
+	logDsn           string
 	encryptionEnv    string
 	dataMaxOpenConns int
 	dataMaxIdleConns int
@@ -182,6 +184,8 @@ type BaseAppConfig struct {
 	DataMaxIdleConns int // default 20
 	LogsMaxOpenConns int // default to 100
 	LogsMaxIdleConns int // default to 5
+	DataDsn          string
+	LogDsn           string
 }
 
 // NewBaseApp creates and returns a new BaseApp instance
@@ -192,6 +196,8 @@ func NewBaseApp(config BaseAppConfig) *BaseApp {
 	app := &BaseApp{
 		isDev:               config.IsDev,
 		dataDir:             config.DataDir,
+		dataDsn:             config.DataDsn,
+		logDsn:              config.LogDsn,
 		encryptionEnv:       config.EncryptionEnv,
 		dataMaxOpenConns:    config.DataMaxOpenConns,
 		dataMaxIdleConns:    config.DataMaxIdleConns,
@@ -1019,7 +1025,7 @@ func (app *BaseApp) initLogsDB() error {
 		maxIdleConns = app.logsMaxIdleConns
 	}
 
-	concurrentDB, err := connectDB(filepath.Join(app.DataDir(), "logs.db"))
+	concurrentDB, err := connectDB(app.logDsn)
 	if err != nil {
 		return err
 	}
@@ -1027,7 +1033,7 @@ func (app *BaseApp) initLogsDB() error {
 	concurrentDB.DB().SetMaxIdleConns(maxIdleConns)
 	concurrentDB.DB().SetConnMaxIdleTime(3 * time.Minute)
 
-	nonconcurrentDB, err := connectDB(filepath.Join(app.DataDir(), "logs.db"))
+	nonconcurrentDB, err := connectDB(app.logDsn)
 	if err != nil {
 		return err
 	}
@@ -1050,7 +1056,7 @@ func (app *BaseApp) initDataDB() error {
 		maxIdleConns = app.dataMaxIdleConns
 	}
 
-	concurrentDB, err := connectDB(filepath.Join(app.DataDir(), "data.db"))
+	concurrentDB, err := connectDB(app.dataDsn)
 	if err != nil {
 		return err
 	}
@@ -1058,7 +1064,7 @@ func (app *BaseApp) initDataDB() error {
 	concurrentDB.DB().SetMaxIdleConns(maxIdleConns)
 	concurrentDB.DB().SetConnMaxIdleTime(3 * time.Minute)
 
-	nonconcurrentDB, err := connectDB(filepath.Join(app.DataDir(), "data.db"))
+	nonconcurrentDB, err := connectDB(app.dataDsn)
 	if err != nil {
 		return err
 	}
@@ -1241,7 +1247,8 @@ func (app *BaseApp) initLogger() error {
 				for _, l := range logs {
 					model.MarkAsNew()
 					// note: using pseudorandom for a slightly better performance
-					model.Id = security.PseudorandomStringWithAlphabet(models.DefaultIdLength, models.DefaultIdAlphabet)
+					// !CHANGED: id changed to snowflake
+					model.Id = security.RandomSnowflakeId()
 					model.Level = int(l.Level)
 					model.Message = l.Message
 					model.Data = l.Data

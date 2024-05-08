@@ -39,7 +39,7 @@ func (dao *Dao) LogsStats(expr dbx.Expression) ([]*LogsStatsItem, error) {
 	result := []*LogsStatsItem{}
 
 	query := dao.LogQuery().
-		Select("count(id) as total", "strftime('%Y-%m-%d %H:00:00', created) as date").
+		Select("count(id) as total", "TO_CHAR(created, 'YYYY-MM-DD HH:00:00') as date").
 		GroupBy("date")
 
 	if expr != nil {
