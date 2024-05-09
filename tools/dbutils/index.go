@@ -58,18 +58,18 @@ func (idx Index) Build() string {
 	}
 
 	if idx.SchemaName != "" {
-		str.WriteString("") // !CHANGED: back tick removed due to postgres error.
+		str.WriteString("\"")
 		str.WriteString(idx.SchemaName)
-		str.WriteString(".") // !CHANGED: back tick removed due to postgres error.
+		str.WriteString("\".")
 	}
 
-	str.WriteString("") // !CHANGED: back tick removed due to postgres error.
+	str.WriteString("\"")
 	str.WriteString(idx.IndexName)
-	str.WriteString(" ") // !CHANGED: back tick removed due to postgres error.
+	str.WriteString("\" ")
 
-	str.WriteString("ON ") // !CHANGED: back tick removed due to postgres error.
+	str.WriteString("ON \"")
 	str.WriteString(idx.TableName)
-	str.WriteString(" (") // !CHANGED: back tick removed due to postgres error.
+	str.WriteString("\" (") // !CHANGED: back tick removed due to postgres error.
 
 	if len(idx.Columns) > 1 {
 		str.WriteString("\n  ")
@@ -91,9 +91,9 @@ func (idx Index) Build() string {
 			str.WriteString(trimmedColName)
 		} else {
 			// regular identifier
-			str.WriteString("") // !CHANGED: back tick removed due to postgres error.
+			str.WriteString("\"")
 			str.WriteString(trimmedColName)
-			str.WriteString("") // !CHANGED: back tick removed due to postgres error.
+			str.WriteString("\"")
 		}
 
 		if col.Collate != "" {
