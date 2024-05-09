@@ -35,8 +35,7 @@ func (dao *Dao) HasTable(tableName string) bool {
 func (dao *Dao) TableColumns(tableName string) ([]string, error) {
 	columns := []string{}
 
-	// !CHANGED: sqlite pragma to postgres information_schema
-	err := dao.DB().NewQuery("SELECT column_name FROM information_schema.columns WHERE table_name = {:tableName}").
+	err := dao.DB().NewQuery("SELECT column_name FROM information_schema.columns WHERE LOWER(table_name) = LOWER({:tableName})").
 		Bind(dbx.Params{"tableName": tableName}).
 		Column(&columns)
 
@@ -47,8 +46,7 @@ func (dao *Dao) TableColumns(tableName string) ([]string, error) {
 func (dao *Dao) TableInfo(tableName string) ([]*models.TableInfoRow, error) {
 	info := []*models.TableInfoRow{}
 
-	// !CHANGED: sqlite pragma to postgres information_schema
-	err := dao.DB().NewQuery("SELECT * FROM information_schema.columns WHERE table_name = {:tableName}").
+	err := dao.DB().NewQuery("SELECT *, (case when is_nullable='YES' then true else false end) nullable FROM information_schema.columns WHERE LOWER(table_name) = LOWER({:tableName})").
 		Bind(dbx.Params{"tableName": tableName}).
 		All(&info)
 	if err != nil {
@@ -69,16 +67,15 @@ func (dao *Dao) TableInfo(tableName string) ([]*models.TableInfoRow, error) {
 // Note: This method doesn't return an error on nonexisting table.
 func (dao *Dao) TableIndexes(tableName string) (map[string]string, error) {
 	indexes := []struct {
-		Name string
-		Sql  string
+		Name string `db:"indexname"`
+		Sql  string `db:"indexdef"`
 	}{}
 
-	err := dao.DB().Select("name", "sql").
-		From("sqlite_master").
-		AndWhere(dbx.NewExp("sql is not null")).
+	err := dao.DB().Select("indexname", "indexdef").
+		From("pg_indexes").
+		AndWhere(dbx.NewExp("indexdef is not null")).
 		AndWhere(dbx.HashExp{
-			"type":     "index",
-			"tbl_name": tableName,
+			"tablename": tableName,
 		}).
 		All(&indexes)
 	if err != nil {

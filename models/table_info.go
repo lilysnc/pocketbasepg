@@ -7,9 +7,9 @@ type TableInfoRow struct {
 	// the original field without specifying a custom mapper
 	PK int
 
-	Index        int           `db:"cid"`
-	Name         string        `db:"name"`
-	Type         string        `db:"type"`
-	NotNull      bool          `db:"notnull"`
-	DefaultValue types.JsonRaw `db:"dflt_value"`
+	Index        int           `db:"ordinal_position"`
+	Name         string        `db:"column_name"`
+	Type         string        `db:"data_type"`
+	NotNull      bool          `db:"nullable"`
+	DefaultValue types.JsonRaw `db:"column_default"`
 }
